@@ -1,6 +1,8 @@
 import importlib
 from pathlib import Path
-from typing import List, Optional, get_type_hints
+from typing import List, Optional, get_type_hints, Tuple
+from statistics import mean, stdev
+from time import time
 
 import cattr
 import click
@@ -15,10 +17,20 @@ cattr.register_structure_hook(List[int], lambda s, _: [int(l) for l in s.splitli
 cattr.register_structure_hook(List[str], lambda s, _: s.splitlines())
 
 
+def timeit(f, *args, **kwargs) -> Tuple[float, float]:
+    times = []
+    for _ in range(10):
+        begin = time()
+        f(*args, **kwargs)
+        times.append(time() - begin)
+    return mean(times), stdev(times)
+
+
 @click.command()
 @click.argument("day", type=click.Choice(modules + ["all"]), required=True)
 @click.option("--part", "-p", type=click.Choice(["1", "2"]), required=False)
-def cli(day: int, part: Optional[int]):
+@click.option("--time/--no-time", default=False)
+def cli(day: int, part: Optional[int], time: bool):
 
     if day == "all":
         modules_to_run = [f"d{m}" for m in modules if m != "all"]
@@ -57,7 +69,12 @@ def cli(day: int, part: Optional[int]):
             func = getattr(module, func_name)
             typ = list(get_type_hints(func).values())[0]
             inp = cattr.structure(raw_str, typ)
-            print(func(inp))
+            result = func(inp)
+            print(result)
+            if time:
+                m, s = timeit(func, inp)
+                print(f"Duration: {m*1000:07.3f} +/- {s*1000:07.3f}ms")
+
         print()
 
 
