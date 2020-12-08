@@ -2,18 +2,18 @@ from typing import List
 
 
 def part1(inp: List[str]) -> int:
-    raise NotImplementedError
+    return 0
 
 
 def part2(inp: List[str]) -> int:
-    raise NotImplementedError
+    return 0
 
 
 def test_part1():
     inp = """"""
-    part1(inp.splitlines())
+    assert part1(inp.splitlines()) == 1
 
 
 def test_part2():
     inp = """"""
-    part2(inp.splitlines())
+    assert part2(inp.splitlines()) == 1
