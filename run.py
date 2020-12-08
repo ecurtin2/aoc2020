@@ -1,10 +1,9 @@
 import importlib
+from pathlib import Path
 from typing import List, Optional, get_type_hints
 
 import cattr
 import click
-
-from pathlib import Path
 
 modules = [
     str(p.name).replace("d", "").replace(".py", "")

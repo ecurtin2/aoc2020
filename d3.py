@@ -1,6 +1,6 @@
-from operator import mul
-from functools import reduce
-from typing import List, Tuple
+from typing import List
+
+from utils import product
 
 
 def solve(inp: List[str], dx: int, dy: int) -> int:
@@ -23,7 +23,7 @@ def part1(inp: List[str]) -> int:
 def part2(inp: List[str]) -> int:
     slopes = [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
     counts = (solve(inp, dx=s[0], dy=s[1]) for s in slopes)
-    return reduce(mul, counts, 1)
+    return product(counts)
 
 
 def test_part1():
