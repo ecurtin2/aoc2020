@@ -1,14 +1,15 @@
 import importlib
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, get_type_hints, Tuple
 from statistics import mean, stdev
 from time import time
+from typing import Any, List, Optional, Tuple, get_type_hints
 
 import cattr
 import click
 
-modules = [
-    str(p.name).replace("d", "").replace(".py", "")
+AVAILABLE_DAYS: List[int] = [
+    int(str(p.name).replace("d", "").replace(".py", ""))
     for p in Path(__file__).parent.rglob("d*.py")
 ]
 
@@ -26,56 +27,74 @@ def timeit(f, *args, **kwargs) -> Tuple[float, float]:
     return mean(times), stdev(times)
 
 
-@click.command()
-@click.argument("day", type=click.Choice(modules + ["all"]), required=True)
-@click.option("--part", "-p", type=click.Choice(["1", "2"]), required=False)
-@click.option("--time/--no-time", default=False)
-def cli(day: int, part: Optional[int], time: bool):
+@dataclass
+class Run:
+    day: int
+    part: int
+    result: Optional[Any] = None
+    mean_duration_ms: Optional[float] = None
+    std_duration_ms: Optional[float] = None
 
-    if day == "all":
-        modules_to_run = [f"d{m}" for m in modules if m != "all"]
-    else:
-        modules_to_run = [f"d{day}"]
+    def execute(self, timed: bool = False):
+        module = importlib.import_module(f"d{self.day}")
 
-    for mod in modules_to_run:
-        print(f"Day {mod[1:]}: ")
-        module = importlib.import_module(mod)
-
-        input_path = Path(f"inputs/{mod}p{part}.txt")
-        if (not input_path.is_file()) and (part != "1"):
+        input_path = Path(f"inputs/d{self.day}p{self.part}.txt")
+        if (not input_path.is_file()) and (self.part != 1):
             # fallback since sometimes same input reused.
-            input_path = Path(f"inputs/{mod}p1.txt")
-
+            input_path = Path(f"inputs/d{self.day}p1.txt")
         try:
             raw_str = input_path.read_text()
         except FileNotFoundError:
-            print(
-                f"No data file found for day {mod} part {part}. Expected {input_path}"
+            raise FileNotFoundError(
+                f"No data file found for day {self.day} part {self.part}. Expected {input_path}"
             )
-            continue
 
-        if part is not None:
-            if part == "1":
-                funcs = ["part1"]
-            elif part == "2":
-                funcs = ["part2"]
-            else:
-                raise ValueError(f"bad part name: {part}")
-        else:
-            funcs = ["part1", "part2"]
+        func = getattr(module, f"part{self.part}")
+        typ = list(get_type_hints(func).values())[0]
+        inp = cattr.structure(raw_str, typ)
+        self.result = func(inp)
+        if timed:
+            m, s = timeit(func, inp)
+            self.mean_duration_ms = m * 1000
+            self.std_duration_ms = s * 1000
 
-        for func_name in funcs:
-            print(func_name, end=": ")
-            func = getattr(module, func_name)
-            typ = list(get_type_hints(func).values())[0]
-            inp = cattr.structure(raw_str, typ)
-            result = func(inp)
-            print(result)
-            if time:
-                m, s = timeit(func, inp)
-                print(f"Duration: {m*1000:07.3f} +/- {s*1000:07.3f}ms")
 
-        print()
+@click.command()
+@click.option(
+    "--day",
+    "-d",
+    type=click.Choice([str(d) for d in AVAILABLE_DAYS] + ["all"]),
+    required=False,
+    default="all",
+)
+@click.option("--part", "-p", type=click.Choice(["1", "2"]), required=False)
+@click.option("--timed/--no-timed", default=False)
+def cli(day: int, part: Optional[int], timed: bool):
+    if part is None:
+        parts = [1, 2]
+    else:
+        parts = [part]
+
+    if day == "all":
+        runs = [Run(day=d, part=p) for d in AVAILABLE_DAYS for p in parts]
+    else:
+        runs = [Run(day=int(day), part=p) for p in parts]
+
+    last_day = -1
+    sorted_runs = sorted(runs, key=lambda r: (r.day, r.part))
+    for run in sorted_runs:
+        run.execute(timed=timed)
+
+        if run.day != last_day:
+            print(f"\nDay {run.day}")
+            print("-" * 32)
+        last_day = run.day
+        print(f"Part {run.part}:")
+        print(f"  Result: {run.result}")
+        if run.mean_duration_ms:
+            print(
+                f"  Time: {run.mean_duration_ms:07.4f} +/- {run.std_duration_ms:07.4f}ms"
+            )
 
 
 if __name__ == "__main__":
