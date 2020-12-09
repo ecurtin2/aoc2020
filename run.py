@@ -8,10 +8,10 @@ from typing import Any, List, Optional, Tuple, get_type_hints
 import cattr
 import click
 
-AVAILABLE_DAYS: List[int] = [
+AVAILABLE_DAYS: List[int] = sorted(
     int(str(p.name).replace("d", "").replace(".py", ""))
     for p in Path(__file__).parent.rglob("d*.py")
-]
+)
 
 
 cattr.register_structure_hook(List[int], lambda s, _: [int(l) for l in s.splitlines()])
@@ -81,16 +81,12 @@ def cli(day: int, part: Optional[int], timed: bool):
         runs = [Run(day=int(day), part=p) for p in parts]
 
     last_day = -1
-    sorted_runs = sorted(runs, key=lambda r: (r.day, r.part))
-    for run in sorted_runs:
+    for run in runs:
         run.execute(timed=timed)
-
         if run.day != last_day:
-            print(f"\nDay {run.day}")
-            print("-" * 32)
+            print(f"\nDay {run.day}\n--------------------------------")
         last_day = run.day
-        print(f"Part {run.part}:")
-        print(f"  Result: {run.result}")
+        print(f"Part {run.part}:\n  Result: {run.result}")
         if run.mean_duration_ms:
             print(
                 f"  Time: {run.mean_duration_ms:07.4f} +/- {run.std_duration_ms:07.4f}ms"
