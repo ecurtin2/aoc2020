@@ -18,9 +18,11 @@ class Emu:
 
     @staticmethod
     def from_iterable(iterable):
-        return Emu([(OpCode[line.split()[0]], int(line.split()[1])) for line in iterable])
+        return Emu(
+            [(OpCode[line.split()[0]], int(line.split()[1])) for line in iterable]
+        )
 
-    def with_sub(self, idx: int, code: OpCode, value: int) -> 'Emu':
+    def with_sub(self, idx: int, code: OpCode, value: int) -> "Emu":
         new_program = self.program.copy()
         new_program[idx] = code, value
         return Emu(new_program)

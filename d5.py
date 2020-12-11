@@ -1,17 +1,12 @@
-from itertools import tee
 from typing import List
+
+from utils import diff
 
 
 def get_seat_id(s: str) -> int:
     row = int(s[:7].replace("B", "1").replace("F", "0"), 2)
     col = int(s[7:].replace("L", "0").replace("R", "1"), 2)
     return row * 8 + col
-
-
-def diff(iterable):
-    a, b = tee(iterable)
-    next(b, None)
-    return (x[1] - x[0] for x in zip(a, b))
 
 
 def part1(inp: List[str]) -> int:

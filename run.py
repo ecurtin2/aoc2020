@@ -20,7 +20,7 @@ cattr.register_structure_hook(List[str], lambda s, _: s.splitlines())
 
 def timeit(f, *args, **kwargs) -> Tuple[float, float]:
     times = []
-    for _ in range(10):
+    for _ in range(1):
         begin = time()
         f(*args, **kwargs)
         times.append(time() - begin)

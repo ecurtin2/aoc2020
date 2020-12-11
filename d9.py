@@ -26,7 +26,7 @@ def solve_p2(inp: List[int], preamble_len: int) -> int:
     end = 2
 
     for start in range(len(inp)):
-        for end in range(start+2, len(inp)):
+        for end in range(start + 2, len(inp)):
             nums = inp[start:end]
             total = sum(nums)
             if total == p1_solution:

@@ -1,4 +1,5 @@
 from functools import reduce
+from itertools import tee
 from operator import mul
 from typing import Callable, Generator, Iterable, List
 
@@ -23,3 +24,9 @@ def split(
 
 def product(iterable):
     return reduce(mul, iterable, 1)
+
+
+def diff(iterable):
+    a, b = tee(iterable)
+    next(b, None)
+    return (x[1] - x[0] for x in zip(a, b))
