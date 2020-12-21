@@ -1,7 +1,6 @@
 from copy import deepcopy
 from itertools import count, zip_longest
-from typing import List, Any, Generator
-
+from typing import Any, Generator, List
 
 EMPTY = "L"
 OCCUPIED = "#"

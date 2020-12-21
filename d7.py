@@ -1,14 +1,6 @@
-from typing import Generator, List, Optional, Tuple
+from typing import Generator, List
 
-
-def pop_number(s: str) -> Tuple[Optional[int], str]:
-    """  '1234abcdef' -> (1234, 'abcdef') """
-    for i in range(len(s)):
-        if not s[: i + 1].isnumeric():
-            try:
-                return int(s[:i]), s[i:]
-            except ValueError:
-                return None, s
+from utils import pop_number
 
 
 def connected(matrix: List[List[int]], start_col: int) -> Generator[int, None, None]:
